@@ -1,25 +1,42 @@
+print('''
+--------------------------------------------------------------------------------------------------------------
+==============================================================================================================                           
+                                            S C O R P I O N                                        by jfrontel
+==============================================================================================================
+--------------------------------------------------------------------------------------------------------------
+''')
+
 import sys
 from PIL import Image
 from PIL.ExifTags import TAGS
 
-def scorpion(file):
-    for n in file:
-        try: # Abrir la imagen
-            imagen = Image.open(n)
-        except:    
-            print('ERROR. No se pudo abrir {file}, compruebe permisos del archivo')
-                     
-        else: 
-            if not imagen.getexif():  # Indicar si no tiene datos EXIF 
-                print(f"{'Exif':32}: {imagen.getexif()}")    
-                exifdata = imagen.getexif() # extrayendo metadatos
-                for tag_id in exifdata:  # looping through all the tags present in exifdata
-                    try:
-                        tagname = TAGS.get(tag_id, tag_id) # getting the tag name instead of tag id
-                        value = exifdata.get(tag_id)  # passing the tagid to get its respective value
-                        print(f"{tagname:25}: {value}")
-                    except Exception: 
-                        print(f"Etiqueta {tag_id} no encontrada.")
+def scorpion(imagenes):
+    for imagen in imagenes:
+        try:
+            imagen = Image.open(imagen)
+            if imagen:
+                # Mostrar los metadatos básicos de la imagen
+                print(f"{'[+] Nombre de imagen':20}: {imagen.filename.split('/')[-1]}") 
+                print(f"{'[+] Tipo de imagen':20}: {imagen.format}")
+                print(f"{'[+] Ancho de la imagen':20}: {imagen.width} píxeres")
+                print(f"{'[+] Alto de la imagen':20}: {imagen.height} píxeres")            
+                print(f"{'[+] Dimensiones':20}: {imagen.size[0]} x {imagen.size[1]}")
+                print(f"{'[+] Modo':20}: {imagen.mode}")
+                print(f"{'[+] Paleta':20}: {imagen.getpalette()}")
+
+                if not imagen.getexif():
+                    print(f"[-] La imagen no tiene metadatos\n")
+                else:
+                    datos = imagen.getexif()
+                    for id in datos:        # Mostrar los metadatos EXIF como "Nombre : Valor"
+                        try:
+                            nombre = TAGS.get(id)
+                            valor = datos.get(id)
+                            print(f"{nombre:20}: {valor}")
+                        except Exception:
+                            print(f"Tag de valor: {id} no encontrado.")
+        except:
+            print(f"No se pudo abrir {imagen}.")
             
 if __name__ == "__main__":    
         scorpion(sys.argv[1:])            
