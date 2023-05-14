@@ -179,13 +179,11 @@ if __name__ == "__main__":
         for file in os.listdir(url):
             if file.lower().endswith(('.html')):
                 img_url = os.path.join(url, file)
-                img_name = os.path.basename(img_url)
-                img_dir = os.path.join(dir, img_name)
-
-                if not (os.path.isfile(img_dir) or os.access(img_dir, os.R_OK)):
+                
+                if not (os.path.isfile(img_url) or os.access(img_url, os.R_OK)):
                     print("ERROR: el fichero dado no existe o no tiene permiso de lectura.")
-                    exit()
-                with open(img_dir, "r") as f:
+                    exit()     
+                with open(img_url, "r") as f:
                     text_html = f.read()
                     soup = set(text_html.split("img"))
                     i = 0
