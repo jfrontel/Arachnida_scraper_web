@@ -42,7 +42,6 @@ def ft_get_argument():
 
 def ft_search_link(url, level):
     lst_url_level =[]
-    print(f"URL={url} de nivel {level} buscando enlaces:")
     try:
         req = requests.get(url)
         if req.status_code == 200: 
@@ -50,7 +49,6 @@ def ft_search_link(url, level):
             table_web = list(soup.find_all('a'))
             for im in table_web:
                 urlweb = str(im)
-                format_protocol = ['https://', 'http://', 'https://www', 'http://www']
                 for q in format_protocol:
                     start = 0
                     end = len(urlweb)                
@@ -74,21 +72,27 @@ def ft_search_link(url, level):
 # hacemos petición get y buscamos en el contenido parseado los links de esa url buscando en la sopa con soup.find_all('img') 
 # formatea y deja limpia las imagenes .jpg', '.jpeg', '.png', '.gif', '.bmp'. Guarda imagenes en carpeta indicada 
 
+
 def ft_search_format(table):
-    i = 0
-    lst_url = []
-    for im in table:
-        imag_1 = str(table[i])
-        index_j = imag_1.find('src=') + 5
-        format = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
-        for w in format:
-            if (imag_1.find(w) != -1):
-                index_z = imag_1.find(w) + 4
-        if (index_j > 0 and index_z < len(imag_1) and index_z ):
-            img_url = imag_1[index_j:index_z]
-            lst_url.append(img_url)
-        i += 1      
-    return lst_url
+    
+        i = 0
+        lst_url = []
+        for im in table:
+            imag_1 = str(table[i])
+            index_j = imag_1.find('src=') + 5
+            format = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
+            for w in format:
+                if (imag_1.find(w) != -1):
+                    index_z = imag_1.find(w) + len(w)
+                    break
+                else:
+                    index_z = len(imag_1)
+            if (index_j > 0 and index_z < len(imag_1) and index_z ):
+                img_url = imag_1[index_j:index_z]
+                lst_url.append(img_url)
+            i += 1      
+        return lst_url
+    
 
 def ft_download_img():
     for url in recursively_found_sites:
@@ -100,13 +104,14 @@ def ft_download_img():
         if resp.status_code == 200:
             print(f"\nConexión con {url} realizada con éxito {resp} buscando imagenes...")
             soup = BeautifulSoup(resp.content, 'html.parser')
-            table_img = list(soup.find_all('img'))
+            table_img = soup.find_all('img')
             lst_url_imagen = ft_search_format(table_img)
             for img_url in lst_url_imagen:
                 try:
-                    resp = requests.get(img_url, timeout=5)
+                    resp = requests.get(img_url, timeout=10)
                 except Exception as excepcion:
-                    print(f"excepcion: {excepcion.args}")   
+                    print(f"excepcion: {excepcion.args}")  
+     
                 if resp.status_code == 200:
                     nombre = img_url.split("/")[-1]
                     if nombre not in downloaded_images:
@@ -118,30 +123,103 @@ def ft_download_img():
                         if nombre.find("thumb-spacer") == -1:
                             print(f"Imagen {nombre} descargada con éxito en {args.p}")
 
+
 # __________________________________________  RUN_SPIDER: LÓGICA  _______________________________________________ #
 
+
 def ft_run_spider():
+    # Argumento de entrada es un archivo local
+   # nivel = 0
     if rec:
+        if not args.l:
+            print("Nivel de profundidad por defecto = 5 ")
+            nivel = 5
+        else:
+                nivel = args.l
+                print(f"Nivel de profundidad = {nivel} ")
         ft_search_link(url, 0)          # Buscar y extraer todos los links de la url dada
     else:
+        if args.l:
+            print("ERROR. La profundidad solo está habilitada en Modo: Recursivo")
+            exit()
         recursively_found_sites.add(url)     # Si no existe recursividad, analiza solo la url inicial
     print("Spider se está preparando para la descarga de imágenes...")
     ft_download_img()
 
+
 # __________________________________________________  MAIN  _______________________________________________________ #
 
-global url, nivel
+global url, nivel, lst_url
 recursively_found_sites = set()     # Conjunto de urls encontradas.
 downloaded_images = set()           # Conjunto de URLs de imágenes encontradas y descargadas
+format_protocol = ['https://', 'http://', 'https://www', 'http://www']
 
 if __name__ == "__main__":
     print("Spider está comprobando los argumentos de entrada...")
-    args = ft_get_argument()
+    try:
+        args = ft_get_argument()
+    except:
+        print("Argumentos no validos, intentelo de nuevo o use help")
+        exit()
     url = args.url
     nivel = args.l
     dir = args.p
     rec = args.r
     print("Argumentos introducidos correctamente...\nCargando Spider...")
-    ft_run_spider()
+    
+    # ______________________________  EXTRAER IMAG DE ARCHIVO HTML EN RUTA LOCAL  ___________________________________ #
+    # Si la url resulta ser un directorio existente de ruta local, spider encontrará todos los archivos  con extension .html
+    # y buscará las imágenes en el archivo y las descargará.
+    if os.path.exists(url):
+        print("Es una ruta local")
+        if not os.path.isdir(url):
+            print("La ruta tiene que ser un directorio")
+            exit() 
 
+        for file in os.listdir(url):
+            if file.lower().endswith(('.html')):
+                img_url = os.path.join(url, file)
+                img_name = os.path.basename(img_url)
+                img_dir = os.path.join(dir, img_name)
+
+                if not (os.path.isfile(img_dir) or os.access(img_dir, os.R_OK)):
+                    print("ERROR: el fichero dado no existe o no tiene permiso de lectura.")
+                    exit()
+                with open(img_dir, "r") as f:
+                    text_html = f.read()
+                    soup = set(text_html.split("img"))
+                    i = 0
+                    for im in soup:
+                        if im.find('src=') != -1:
+                            index_j = im.find('src=') + 5    
+                        else:
+                            index_j = 0
+                        format = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
+                        for w in format:
+                            if (im.find(w) != -1):
+                                index_z = im.find(w) + len(w)
+                                break
+                            else:
+                                index_z = len(w)  
+                        if (index_j > 0 and index_z < len(im) and index_z ):
+                            img_url = im[index_j:index_z]
+                            if img_url not in recursively_found_sites:
+                                recursively_found_sites.add(img_url)
+                        i += 1      
+                    for img_url in recursively_found_sites:
+                        try:
+                            resp = requests.get(img_url, timeout=5)
+                        except Exception as excepcion:
+                            continue   
+                        if resp.status_code == 200:
+                            nombre = img_url.split("/")[-1]
+                            if nombre not in downloaded_images:
+                                downloaded_images.add(nombre)
+                                if not os.path.exists(args.p):
+                                    os.makedirs(args.p)
+                                with open((args.p) + "/" + nombre, "wb") as archivo:
+                                    archivo.write(resp.content)
+                                    print(f"Imagen {nombre} descargada con éxito en {args.p}")
+    else:                                        
+        ft_run_spider()
 
