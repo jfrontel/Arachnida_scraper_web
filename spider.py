@@ -13,11 +13,11 @@ from bs4 import BeautifulSoup as sopa
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
-'''Spider permitirá extraer todas las imágenes de un sitio web, de manera recursiva, proporcionando una url como parámetro. 
+'''Spider extraerá todas las imágenes de un sitio web, de manera recursiva, proporcionando una url como parámetro. 
 Gestionarás las siguientes opciones del programa: ./spider [-rlp] URL
-• Opción -r : descarga recursivamente las imágenes de una URL recibida como parámetro.
-• Opción -r -l [N] : indica el nivel profundidad máximo de la descarga recursiva. En caso de no indicarse, será 5.
-• Opción -p [PATH] : indica la ruta donde se guardarán los archivos descargados. En caso de no indicarse, se utilizará ./data/.
+• Opción -r: descarga recursivamente las imágenes de una URL recibida como parámetro.
+• Opción -r -l [N]: indica el nivel profundidad máximo de la descarga recursiva. En caso de no indicarse, será 5.
+• Opción -p [PATH]: Ruta donde se guardarán los archivos descargados. En caso de no indicarse, se usará ./data/.
 El programa descargará por defecto las siguientes extensiones: .jpg/jpeg, .png, .gif, .bmp'''
 
 # __________________________________________  MENÚ DE ARGUMENTOS  _____________________________________________ #

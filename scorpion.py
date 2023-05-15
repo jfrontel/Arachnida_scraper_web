@@ -10,7 +10,17 @@ import sys
 from PIL import Image
 from PIL.ExifTags import TAGS
 
-def scorpion(imagenes):
+'''El segundo programa scorpion recibirá archivos de imagen como parámetros y será capaz de analizarlos en busca 
+datos EXIF y otros metadatos, mostrándolos en pantalla.
+El programa será compatible, al menos, con las mismas extensiones que gestiona spider.
+Deberá mostrar atributos básicos como la fecha de creación, así como otros datos EXIF.
+El formato en el que se muestren los metadatos queda a tu elección.
+./scorpion FILE1 [FILE2 ...]'''
+
+# ________________________________________  RUN_SPIDER: LÓGICA  _____________________________________________ #
+# Por medio de los mudulos pillow y exifTags extraeremos informacion y metadatos de las imagenes introducida
+
+def ft_scorpion(imagenes):
     for imagen in imagenes:
         try:
             imagen = Image.open(imagen)
@@ -39,4 +49,4 @@ def scorpion(imagenes):
             print(f"No se pudo abrir {imagen}.")
             
 if __name__ == "__main__":    
-        scorpion(sys.argv[1:])            
+        ft_scorpion(sys.argv[1:])            
